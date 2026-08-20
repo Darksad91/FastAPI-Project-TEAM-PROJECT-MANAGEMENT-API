@@ -1,11 +1,6 @@
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import engine, Base
-from app.routers import auth, protected, cors_demo, files
-# Import cả 2 model để SQLAlchemy nhận biết và tạo đủ bảng khi khởi động
-from app.models import user, role  # noqa: F401
-
+from app.models import users, projects, project_members, tasks
 
 # Khởi tạo ứng dụng FastAPI
 app = FastAPI(
