@@ -15,10 +15,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 def get_db():
-    """
-    Dependency generator để cung cấp database session cho mỗi request.
-    Đảm bảo session được đóng sau khi request hoàn thành (Exception handling scope).
-    """
     db = SessionLocal()
     try:
         yield db
