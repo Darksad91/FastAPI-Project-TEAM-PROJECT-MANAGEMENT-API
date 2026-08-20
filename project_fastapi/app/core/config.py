@@ -2,10 +2,6 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # --- Cấu hình ứng dụng ---
-    APP_NAME: str = "TEAM PROJECT MANAGEMENT API"
-    APP_VERSION: str = "1.0.0"
-    APP_DESCRIPTION: str = "Ứng dụng quản lý thành viên trong nhóm"
 
     # --- Cấu hình Database ---
     # Đọc từ biến môi trường DATABASE_URL trong file .env
