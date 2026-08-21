@@ -1,6 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timezone
+
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
+
 from app.db.database import Base
 
 
@@ -20,6 +22,7 @@ class ProjectMember(Base):
     )
 
     role = Column(String(20), nullable=False)
-    joined_at = Column(DateTime, default=lambda: datetime.utcnow())
+    joined_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
     project = relationship("Project", back_populates="members")
     user = relationship("User", back_populates="project_members")

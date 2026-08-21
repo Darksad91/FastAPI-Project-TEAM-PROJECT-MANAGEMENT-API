@@ -1,19 +1,20 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProjectBase(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=255)
     description: str | None = None
 
 
 class ProjectCreate(ProjectBase):
-    owner_id: int
+    """owner_id được lấy từ current_user trong router, không nhận từ client."""
+    pass
 
 
 class ProjectUpdate(BaseModel):
-    name: str | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = None
 
 

@@ -1,6 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timezone
+
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
+
 from app.db.database import Base
 
 
@@ -12,10 +14,10 @@ class Task(Base):
     title = Column(String(255), nullable=False)
     description = Column(Text)
     assignee_id = Column(Integer, ForeignKey("users.id"))
-    status = Column(String(20), default="TODO")
-    priority = Column(String(20), default="MEDIUM")
+    status = Column(String(20), nullable=False, default="TODO")
+    priority = Column(String(20), nullable=False, default="MEDIUM")
     due_date = Column(DateTime)
-    created_at = Column(DateTime, default=lambda: datetime.utcnow())
+    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
     project = relationship("Project", back_populates="tasks")
     assignee = relationship("User", back_populates="tasks")

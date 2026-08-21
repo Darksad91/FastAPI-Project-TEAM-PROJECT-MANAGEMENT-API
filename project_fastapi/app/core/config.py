@@ -21,6 +21,8 @@ class Settings(BaseSettings):
         # Chỉ định file .env để pydantic-settings tự động đọc
         env_file = ".env"
         env_file_encoding = "utf-8"
+        # Bỏ qua các biến môi trường không được khai báo trong Settings
+        extra = "ignore"
 
 
 # Khởi tạo một instance duy nhất (Singleton) dùng cho toàn bộ ứng dụng

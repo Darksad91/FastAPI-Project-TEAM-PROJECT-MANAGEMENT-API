@@ -2,9 +2,11 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
+from app.core.enums import ProjectMemberRole
+
 
 class ProjectMemberBase(BaseModel):
-    role: str
+    role: ProjectMemberRole
 
 
 class ProjectMemberCreate(ProjectMemberBase):
@@ -13,7 +15,7 @@ class ProjectMemberCreate(ProjectMemberBase):
 
 
 class ProjectMemberUpdate(BaseModel):
-    role: str | None = None
+    role: ProjectMemberRole | None = None
 
 
 class ProjectMemberResponse(ProjectMemberBase):

@@ -1,13 +1,15 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.core.enums import TaskPriority, TaskStatus
 
 
 class TaskBase(BaseModel):
-    title: str
+    title: str = Field(min_length=1, max_length=255)
     description: str | None = None
-    status: str = "TODO"
-    priority: str = "MEDIUM"
+    status: TaskStatus = TaskStatus.TODO
+    priority: TaskPriority = TaskPriority.MEDIUM
     due_date: datetime | None = None
 
 
@@ -17,11 +19,11 @@ class TaskCreate(TaskBase):
 
 
 class TaskUpdate(BaseModel):
-    title: str | None = None
+    title: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = None
     assignee_id: int | None = None
-    status: str | None = None
-    priority: str | None = None
+    status: TaskStatus | None = None
+    priority: TaskPriority | None = None
     due_date: datetime | None = None
 
 

@@ -1,6 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timezone
+
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
+
 from app.db.database import Base
 
 
@@ -11,7 +13,7 @@ class Project(Base):
     name = Column(String(255), nullable=False)
     description = Column(Text)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.utcnow())
+    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
     owner = relationship("User", back_populates="projects")
     members = relationship("ProjectMember", back_populates="project")
