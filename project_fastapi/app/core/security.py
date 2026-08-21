@@ -16,6 +16,8 @@ from app.models.users import User
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+USER_ROLE = "USER"
+ADMIN_ROLE = "ADMIN"
 
 
 def hash_password(password: str) -> str:
@@ -108,3 +110,23 @@ def get_current_user(
     if not user or not user.is_active:
         raise credentials_exception
     return user
+
+
+def require_role(*allowed_roles: str):
+    """Tao dependency chi cho phep nguoi dung thuoc cac role duoc chi dinh."""
+    normalized_roles = {role.upper() for role in allowed_roles}
+    if not normalized_roles or not normalized_roles.issubset({USER_ROLE, ADMIN_ROLE}):
+        raise ValueError("Role hop le la USER hoac ADMIN")
+
+    def role_guard(current_user: User = Depends(get_current_user)) -> User:
+        if current_user.role.upper() not in normalized_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Ban khong co quyen truy cap tai nguyen nay",
+            )
+        return current_user
+
+    return role_guard
+
+
+require_admin = require_role(ADMIN_ROLE)
