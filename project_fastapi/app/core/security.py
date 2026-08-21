@@ -1,4 +1,5 @@
 from base64 import urlsafe_b64decode, urlsafe_b64encode
+import binascii
 from datetime import datetime, timedelta, timezone
 import hashlib
 import hmac
@@ -18,6 +19,14 @@ from app.models.users import User
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 USER_ROLE = "USER"
 ADMIN_ROLE = "ADMIN"
+
+
+class InvalidTokenError(ValueError):
+    """JWT khong dung dinh dang, thuat toan hoac chu ky."""
+
+
+class ExpiredTokenError(ValueError):
+    """JWT da qua thoi diem het han."""
 
 
 def hash_password(password: str) -> str:
@@ -68,7 +77,7 @@ def decode_access_token(token: str) -> dict[str, str | int]:
             signature_segment + "=" * (-len(signature_segment) % 4)
         )
         if not hmac.compare_digest(supplied_signature, expected_signature):
-            raise ValueError("Chu ky JWT khong hop le")
+            raise InvalidTokenError("Chu ky JWT khong hop le")
 
         header = json.loads(
             urlsafe_b64decode(header_segment + "=" * (-len(header_segment) % 4))
@@ -77,17 +86,26 @@ def decode_access_token(token: str) -> dict[str, str | int]:
             urlsafe_b64decode(payload_segment + "=" * (-len(payload_segment) % 4))
         )
         if header.get("alg") != "HS256" or header.get("typ") != "JWT":
-            raise ValueError("JWT khong dung thuat toan")
+            raise InvalidTokenError("JWT khong dung thuat toan")
         if not isinstance(payload.get("sub"), str):
-            raise ValueError("JWT thieu subject")
+            raise InvalidTokenError("JWT thieu subject")
         expires_at = payload.get("exp")
         if isinstance(expires_at, bool) or not isinstance(expires_at, (int, float)):
-            raise ValueError("JWT thieu thoi han")
+            raise InvalidTokenError("JWT thieu thoi han")
         if expires_at <= datetime.now(timezone.utc).timestamp():
-            raise ValueError("JWT da het han")
+            raise ExpiredTokenError("JWT da het han")
         return payload
-    except (UnicodeDecodeError, ValueError, json.JSONDecodeError) as exc:
-        raise ValueError("JWT khong hop le") from exc
+    except ExpiredTokenError:
+        raise
+    except (
+        AttributeError,
+        binascii.Error,
+        UnicodeDecodeError,
+        UnicodeEncodeError,
+        ValueError,
+        json.JSONDecodeError,
+    ) as exc:
+        raise InvalidTokenError("JWT khong hop le") from exc
 
 
 def get_current_user(
@@ -103,12 +121,23 @@ def get_current_user(
     try:
         payload = decode_access_token(token)
         user_id = int(payload["sub"])
+    except ExpiredTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token da het han",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     except (TypeError, ValueError):
         raise credentials_exception
 
     user = db.query(User).filter(User.id == user_id).first()
-    if not user or not user.is_active:
+    if not user:
         raise credentials_exception
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tai khoan da bi vo hieu hoa",
+        )
     return user
 
 

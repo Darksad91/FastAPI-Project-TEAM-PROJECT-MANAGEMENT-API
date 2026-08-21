@@ -53,9 +53,8 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
 
     if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail="Tai khoan da bi vo hieu hoa",
-            headers={"WWW-Authenticate": "Bearer"},
         )
 
     return TokenResponse(access_token=create_access_token(str(user.id)))
