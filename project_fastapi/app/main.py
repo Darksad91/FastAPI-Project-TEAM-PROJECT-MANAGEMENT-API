@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from app.db.database import engine, Base
 from app.models import users, projects, project_members, tasks
 from app.routers.auth import router as auth_router
+from app.routers.users import router as users_router
 
 # Khởi tạo ứng dụng FastAPI
 app = FastAPI(
@@ -12,6 +13,7 @@ app = FastAPI(
 )
 
 app.include_router(auth_router)
+app.include_router(users_router)
 
 @app.get("/health")
 def health_check():
