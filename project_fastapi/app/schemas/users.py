@@ -31,6 +31,24 @@ class UserCreate(UserBase):
         return full_name
 
 
+class UserLogin(BaseModel):
+    email: str = Field(min_length=3, max_length=255)
+    password: str = Field(min_length=1, max_length=72)
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        email = value.strip().lower()
+        if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email):
+            raise ValueError("Email khong hop le")
+        return email
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
 class UserUpdate(BaseModel):
     email: str | None = None
     full_name: str | None = None
