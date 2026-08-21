@@ -20,7 +20,6 @@ class ProjectMember(Base):
     )
 
     role = Column(String(20), nullable=False)
-    joined_at = Column(DateTime, default=datetime.utcnow)
-
+    joined_at = Column(DateTime, default=lambda: datetime.utcnow())
     project = relationship("Project", back_populates="members")
     user = relationship("User", back_populates="project_members")

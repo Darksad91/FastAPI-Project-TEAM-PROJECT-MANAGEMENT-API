@@ -10,12 +10,12 @@ class Settings(BaseSettings):
     # --- Cấu hình JWT ---
     # Đọc từ biến môi trường SECRET_KEY trong file .env
     SECRET_KEY: str
-    ALGORITHM: str = "HS256"
+    ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     # --- Cấu hình CORS ---
     # Đọc từ biến môi trường ALLOWED_ORIGINS trong file .env (dạng JSON list)
-    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
+    # ALLOWED_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 
     class Config:
         # Chỉ định file .env để pydantic-settings tự động đọc

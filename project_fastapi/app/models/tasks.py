@@ -15,7 +15,7 @@ class Task(Base):
     status = Column(String(20), default="TODO")
     priority = Column(String(20), default="MEDIUM")
     due_date = Column(DateTime)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.utcnow())
 
     project = relationship("Project", back_populates="tasks")
     assignee = relationship("User", back_populates="tasks")

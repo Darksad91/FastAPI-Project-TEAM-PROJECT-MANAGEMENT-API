@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
-from starlette.exceptions import HTTPException
 from app.db.database import engine, Base
 from app.models import users, projects, project_members, tasks
+from app.routers.auth import router as auth_router
 
 # Khởi tạo ứng dụng FastAPI
 app = FastAPI(
@@ -10,6 +10,8 @@ app = FastAPI(
     description="Ứng dụng quản lý thành viên trong nhóm",
     version="1.0.0"
 )
+
+app.include_router(auth_router)
 
 @app.get("/health")
 def health_check():

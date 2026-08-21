@@ -13,7 +13,7 @@ class User(Base):
     full_name = Column(String(255), nullable=False)
     role = Column(String(20), default="USER")
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.utcnow())
 
     projects = relationship("Project", back_populates="owner")
     project_members = relationship("ProjectMember", back_populates="user")

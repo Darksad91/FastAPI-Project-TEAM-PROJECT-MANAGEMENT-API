@@ -1,6 +1,7 @@
 from datetime import datetime
+import re
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class UserBase(BaseModel):
@@ -9,7 +10,25 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: str
+    email: str = Field(min_length=3, max_length=255)
+    full_name: str = Field(min_length=1, max_length=255)
+    password: str = Field(min_length=8, max_length=72)
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        email = value.strip().lower()
+        if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email):
+            raise ValueError("Email khong hop le")
+        return email
+
+    @field_validator("full_name")
+    @classmethod
+    def validate_full_name(cls, value: str) -> str:
+        full_name = value.strip()
+        if not full_name:
+            raise ValueError("Ho ten khong duoc de trong")
+        return full_name
 
 
 class UserUpdate(BaseModel):
