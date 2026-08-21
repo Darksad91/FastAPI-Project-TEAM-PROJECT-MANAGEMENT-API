@@ -2,7 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.core.security import create_access_token, hash_password, verify_password
+from app.core.security import (
+    create_access_token,
+    get_current_user,
+    hash_password,
+    verify_password,
+)
 from app.db.database import get_db
 from app.models.users import User
 from app.schemas.users import TokenResponse, UserCreate, UserLogin, UserResponse
@@ -54,3 +59,9 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
         )
 
     return TokenResponse(access_token=create_access_token(str(user.id)))
+
+
+@router.get("/me", response_model=UserResponse)
+def get_me(current_user: User = Depends(get_current_user)):
+    """Tra ve thong tin cua nguoi dung trong Bearer token."""
+    return current_user

@@ -1,12 +1,21 @@
-from base64 import urlsafe_b64encode
+from base64 import urlsafe_b64decode, urlsafe_b64encode
 from datetime import datetime, timedelta, timezone
 import hashlib
 import hmac
 import json
+from typing import Annotated
 
 import bcrypt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.db.database import get_db
+from app.models.users import User
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 def hash_password(password: str) -> str:
@@ -41,3 +50,61 @@ def create_access_token(subject: str, expires_delta: timedelta | None = None) ->
         hashlib.sha256,
     ).digest()
     return f"{signing_input}.{urlsafe_b64encode(signature).rstrip(b'=').decode('ascii')}"
+
+
+def decode_access_token(token: str) -> dict[str, str | int]:
+    """Xac thuc va giai ma JWT HS256, bao gom kiem tra thoi han token."""
+    try:
+        header_segment, payload_segment, signature_segment = token.split(".")
+        signing_input = f"{header_segment}.{payload_segment}"
+        expected_signature = hmac.new(
+            settings.SECRET_KEY.encode("utf-8"),
+            signing_input.encode("ascii"),
+            hashlib.sha256,
+        ).digest()
+        supplied_signature = urlsafe_b64decode(
+            signature_segment + "=" * (-len(signature_segment) % 4)
+        )
+        if not hmac.compare_digest(supplied_signature, expected_signature):
+            raise ValueError("Chu ky JWT khong hop le")
+
+        header = json.loads(
+            urlsafe_b64decode(header_segment + "=" * (-len(header_segment) % 4))
+        )
+        payload = json.loads(
+            urlsafe_b64decode(payload_segment + "=" * (-len(payload_segment) % 4))
+        )
+        if header.get("alg") != "HS256" or header.get("typ") != "JWT":
+            raise ValueError("JWT khong dung thuat toan")
+        if not isinstance(payload.get("sub"), str):
+            raise ValueError("JWT thieu subject")
+        expires_at = payload.get("exp")
+        if isinstance(expires_at, bool) or not isinstance(expires_at, (int, float)):
+            raise ValueError("JWT thieu thoi han")
+        if expires_at <= datetime.now(timezone.utc).timestamp():
+            raise ValueError("JWT da het han")
+        return payload
+    except (UnicodeDecodeError, ValueError, json.JSONDecodeError) as exc:
+        raise ValueError("JWT khong hop le") from exc
+
+
+def get_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Session = Depends(get_db),
+) -> User:
+    """Lay nguoi dung hien tai tu Bearer JWT."""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Khong the xac thuc token",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = decode_access_token(token)
+        user_id = int(payload["sub"])
+    except (TypeError, ValueError):
+        raise credentials_exception
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_active:
+        raise credentials_exception
+    return user
