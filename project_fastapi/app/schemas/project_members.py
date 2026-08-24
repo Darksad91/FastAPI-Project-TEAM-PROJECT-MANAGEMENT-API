@@ -10,8 +10,18 @@ class ProjectMemberBase(BaseModel):
 
 
 class ProjectMemberCreate(ProjectMemberBase):
+    """Dùng khi tạo trực tiếp qua code (project_id + user_id đều cần truyền)."""
     project_id: int
     user_id: int
+
+
+class ProjectMemberAdd(BaseModel):
+    """
+    Dùng cho endpoint POST /projects/{id}/members.
+    project_id lấy từ path param nên không cần truyền trong body.
+    """
+    user_id: int
+    role: ProjectMemberRole = ProjectMemberRole.MEMBER
 
 
 class ProjectMemberUpdate(BaseModel):

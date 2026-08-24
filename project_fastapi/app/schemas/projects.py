@@ -14,6 +14,7 @@ class ProjectCreate(ProjectBase):
 
 
 class ProjectUpdate(BaseModel):
+    """Dùng cho PATCH — chỉ gửi các trường muốn cập nhật, không cần gửi đủ tất cả."""
     name: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = None
 
@@ -22,5 +23,7 @@ class ProjectResponse(ProjectBase):
     id: int
     owner_id: int
     created_at: datetime
+    is_deleted: bool
+    deleted_at: datetime | None
 
     model_config = ConfigDict(from_attributes=True)
